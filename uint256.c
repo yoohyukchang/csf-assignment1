@@ -91,7 +91,7 @@ UInt256 uint256_negate(UInt256 val) {
 // the left.  Any bits shifted past the most significant bit
 // should be shifted back into the least significant bits.
 UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
-  UInt256 result;
+  UInt256 result = {0};
 
   unsigned int numRotationsOfOneFullBlock = nbits / 32;
   unsigned int numRotationsWithinBlock = nbits % 32;
@@ -101,13 +101,12 @@ UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
     result.data[newIndex] = val.data[i];
   }
 
-  // temp is for storing a temporary trancated values
-  UInt256 tempShifted;
-  UInt256 tempTrancated;
+  UInt256 tempShifted = {0};
+  UInt256 tempTrancated = {0};
   for (unsigned int i = 0; i < 8; i++) {
-    // updating the result.data by shifting. But this still does not bring the end values to the next block or to the beginning of result.data
+    // temporarily stores the shifted data. It does not include the trancated value yet.
     tempShifted.data[i] = result.data[i] << numRotationsWithinBlock;
-    // temporarily stores the trancated values
+    // temporarily stores the trancated values.
     tempTrancated.data[i] = result.data[i] >> (32 - numRotationsWithinBlock); 
   }
 
@@ -123,7 +122,31 @@ UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
 // the right. Any bits shifted past the least significant bit
 // should be shifted back into the most significant bits.
 UInt256 uint256_rotate_right(UInt256 val, unsigned nbits) {
-  UInt256 result;
-  // TODO: implement
+  UInt256 result = {0};
+
+  unsigned int numRotationsOfOneFullBlock = nbits / 32;
+  unsigned int numRotationsWithinBlock = nbits % 32;
+
+  numRotationsOfOneFullBlock = numRotationsOfOneFullBlock % 8;
+
+  for (int i = 7; i >= 0; i--) {
+    int newIndex = (i - numRotationsOfOneFullBlock + 8) % 8;
+    result.data[newIndex] = val.data[i];
+  }
+
+  UInt256 tempShifted = {0};
+  UInt256 tempTrancated = {0};
+  for (int i = 7; i >= 0; i--) {
+    // temporarily stores the shifted data. It does not include the trancated value yet.
+    tempShifted.data[i] = result.data[i] >> numRotationsWithinBlock;
+    // temporarily stores the trancated values
+    tempTrancated.data[i] = result.data[i] << (32 - numRotationsWithinBlock); 
+  }
+
+  for (int i = 7; i >= 0; i--) {
+    int nextIndex = (i - 1 + 8) % 8;
+    result.data[nextIndex]  = tempShifted.data[nextIndex] | tempTrancated.data[i];
+  }
+
   return result;
 }
