@@ -92,7 +92,30 @@ UInt256 uint256_negate(UInt256 val) {
 // should be shifted back into the least significant bits.
 UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
   UInt256 result;
-  // TODO: implement
+
+  unsigned int numRotationsOfOneFullBlock = nbits / 32;
+  unsigned int numRotationsWithinBlock = nbits % 32;
+
+  for (unsigned int i = 0; i < 8; i++) {
+    unsigned int newIndex = (numRotationsOfOneFullBlock + i) % 8;
+    result.data[newIndex] = val.data[i];
+  }
+
+  // temp is for storing a temporary trancated values
+  UInt256 tempShifted;
+  UInt256 tempTrancated;
+  for (unsigned int i = 0; i < 8; i++) {
+    // updating the result.data by shifting. But this still does not bring the end values to the next block or to the beginning of result.data
+    tempShifted.data[i] = result.data[i] << numRotationsWithinBlock;
+    // temporarily stores the trancated values
+    tempTrancated.data[i] = result.data[i] >> (32 - numRotationsWithinBlock); 
+  }
+
+  for (unsigned int i = 0; i < 8; i++) {
+    unsigned int nextIndex = (i + 1) % 8;
+    result.data[nextIndex]  = tempShifted.data[nextIndex] | tempTrancated.data[i];
+  }
+
   return result;
 }
 
