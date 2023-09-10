@@ -42,12 +42,26 @@ UInt256 uint256_create_from_hex(const char *hex) {
     newStr[64] = '\0';
     hex = newStr;
   }
+  else if (strlen(hex) < 8) {
+    result.data[0] = strtoul(hex , NULL, 16);
+    return result;
+  }
+
   int len = strlen(hex);
-  //printf("%s \n" , hex);
   int uIntIndex = 0;
-  for(int i = 0; i < len; i += 8){
-    char factStr[9];
-    for (int j = 0; j < 8; j ++) {
+  
+    int remainder = len % 8;
+  if (remainder != 0) {
+    int lastIndex = len / 8;
+    char shortStr[remainder + 1];
+    for (int i = 0; i < remainder; i++) {
+      shortStr[i] = hex[i];
+    }
+    result.data[lastIndex] = strtoul(shortStr, NULL, 16);
+  }
+  for(int i = 0; i < len - remainder; i += 8){
+    char factStr[9] = {0};
+    for (int j = 0; j < 8; j++) {
     factStr[7 - j] = hex[len - 1 - j - i];
     //printf("%c", hex[len - 1 - j - i]);
     }
@@ -104,44 +118,72 @@ uint32_t uint256_get_bits(UInt256 val, unsigned index) {
 
 // Compute the sum of two UInt256 values.
 UInt256 uint256_add(UInt256 left, UInt256 right) {
-  UInt256 sum;
-  // TODO: implement
-  uint32_t leftOver = 0;
-  for (unsigned int i = 0; i < 8; i++) {
-    uint32_t leftElement = left.data[i];
-    uint32_t rightElement = right.data[i];
-    uint32_t sumOfLeftAndRight = leftElement + rightElement;
-    sumOfLeftAndRight = sumOfLeftAndRight + leftOver;
-    if (sumOfLeftAndRight < leftElement) {
-      leftOver = sumOfLeftAndRight;
+  UInt256 result = {0};  // Initialize all elements to zero
+    uint32_t carry = 0;    // Start with no carry
+
+    for (int i = 0; i < 8; i++) {
+        uint32_t sumWithoutCarry = left.data[i] + right.data[i];
+uint32_t sum = sumWithoutCarry + carry;
+if (sumWithoutCarry < left.data[i] || sum < sumWithoutCarry) {
+    carry = 1;
+} else {
+    carry = 0;
+}
+        result.data[i] = sum;  // Store only the lower 32 bits
     }
-    sum.data[i] = sumOfLeftAndRight;
-  }
-  return sum;
+    return result;
+
 }
 
-// int main(){
-//   char *hex = "1A2B3C4D5E6F7890ABCDEF0123456789";
-//   UInt256 result = uint256_create_from_hex(hex);
-//   // for(int i =0; i <8; i++) {
-//   //   printf("%u \n", result.data[i]);
-//   // }
-//   char * str = uint256_format_as_hex(result);
-//   printf("%s", str);
-// }
+ //int main(){
+//   //   char *hex = "A2B3C4D5E6F7890ABCDEF0123456789";
+//   // UInt256 result = uint256_create_from_hex(hex);
+//   //  for(int i =0; i <8; i++) {
+//   //    printf("%u \n", result.data[i]);
+//   //  }
+//   //  char * str = uint256_format_as_hex(result);
+//   // printf("%s", str);
+//      UInt256 a = {{1, 0, 0, 0, 0, 0, 0, 0}};
+//      UInt256 b = {{1, 0, 0, 0, 0, 0, 0, 0}};
+//      UInt256 sum = uint256_sub(a,b);
 
+//     for (int i = 7; i >= 0; i--) {
+//         printf("%u ", sum.data[i]);
+//      }
+  
+//  }
+
+  // for (int i = 7; i >= 0; i--) {
+  //       printf("%u ", right.data[i]);
+  //    }
+  // for (int i = 0; i < 8; i++) {
+  //   uint32_t sum = left.data[i] + right.data[i]; 
+  //   result.data[i] = sum;  
+  // }
 // Compute the difference of two UInt256 values.
 UInt256 uint256_sub(UInt256 left, UInt256 right) {
   UInt256 result;
-  // TODO: implement
+  right = uint256_negate(right);
+
+  result = uint256_add(left, right);
   return result;
 }
 
 // Return the two's-complement negation of the given UInt256 value.
 UInt256 uint256_negate(UInt256 val) {
-  UInt256 result;
-  // TODO: implement
-  return result;
+  for (int i = 0; i < 8; i++) {
+        val.data[i] = ~val.data[i];
+    }
+
+    // Step 2: Add 1
+    uint64_t carry = 1;
+    for (int i = 0; i < 8 && carry; i++) {
+        uint64_t resultWithCarry = (uint64_t)val.data[i] + carry;
+        val.data[i] = (uint32_t)resultWithCarry;  // Take the least significant 32 bits
+        carry = resultWithCarry >> 32;            // Take the carry (if any)
+    }
+
+    return val;
 }
 
 // Return the result of rotating every bit in val nbits to

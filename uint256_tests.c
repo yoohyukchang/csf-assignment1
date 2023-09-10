@@ -161,6 +161,7 @@ void test_create_from_hex(TestObjs *objs) {
 
   UInt256 one = uint256_create_from_hex("1");
   ASSERT_SAME(objs->one, one);
+  
 
   UInt256 max = uint256_create_from_hex("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
   ASSERT_SAME(objs->max, max);
