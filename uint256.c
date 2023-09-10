@@ -33,18 +33,65 @@ UInt256 uint256_create(const uint32_t data[8]) {
 
 // Create a UInt256 value from a string of hexadecimal digits.
 UInt256 uint256_create_from_hex(const char *hex) {
-  UInt256 result;
-  // TODO: implement
+  UInt256 result = {0};
+  if (strlen(hex) > 64) {
+    char newStr[65];
+    for (int i = 0; i < 64; i++) {
+      newStr[i] = hex[strlen(hex) - 64 + i];
+    }
+    newStr[64] = '\0';
+    hex = newStr;
+  }
+  int len = strlen(hex);
+  //printf("%s \n" , hex);
+  int uIntIndex = 0;
+  for(int i = 0; i < len; i += 8){
+    char factStr[9];
+    for (int j = 0; j < 8; j ++) {
+    factStr[7 - j] = hex[len - 1 - j - i];
+    //printf("%c", hex[len - 1 - j - i]);
+    }
+    factStr[8] = '\0';  
+    //printf("factory String: %s %lu \n", factStr, strlen(factStr));
+    result.data[uIntIndex] = strtoul(factStr , NULL, 16);
+    uIntIndex++;
+  }
   return result;
 }
+
 
 // Return a dynamically-allocated string of hex digits representing the
 // given UInt256 value.
 char *uint256_format_as_hex(UInt256 val) {
   char *hex = NULL;
-  // TODO: implement
+  int startIndex;
+  for (int i = 7; i >= 0; i--) {
+    if (val.data[i] != 0) {
+      startIndex = i;
+      break;
+    }
+    if (i == 0 && val.data[i] == 0) {
+        hex = malloc(2);  // 1 for '0' and 1 for '\0'
+        sprintf(hex, "0");
+
+        return hex;
+    }
+  }
+  int size = (startIndex + 1) * 8 + 1;
+  hex = malloc(size);
+
+  char* currentPos = hex;
+
+  for (int i = startIndex; i >= 0; i--) {
+    if (i == startIndex) {
+            currentPos += sprintf(currentPos, "%x", val.data[i]);  // format without leading 0s for the first non-zero value
+        } else {
+            currentPos += sprintf(currentPos, "%08x", val.data[i]);  // format with leading 0s for the rest
+        }
+  }
   return hex;
 }
+
 
 // Get 32 bits of data from a UInt256 value.
 // Index 0 is the least significant 32 bits, index 7 is the most
@@ -72,6 +119,16 @@ UInt256 uint256_add(UInt256 left, UInt256 right) {
   }
   return sum;
 }
+
+// int main(){
+//   char *hex = "1A2B3C4D5E6F7890ABCDEF0123456789";
+//   UInt256 result = uint256_create_from_hex(hex);
+//   // for(int i =0; i <8; i++) {
+//   //   printf("%u \n", result.data[i]);
+//   // }
+//   char * str = uint256_format_as_hex(result);
+//   printf("%s", str);
+// }
 
 // Compute the difference of two UInt256 values.
 UInt256 uint256_sub(UInt256 left, UInt256 right) {
