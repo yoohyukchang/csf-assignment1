@@ -49,7 +49,17 @@ void test_negate(TestObjs *objs);
 void test_rotate_left(TestObjs *objs);
 void test_rotate_right(TestObjs *objs);
 
-// Additional Tests ***
+// *** Additional Tests ***
+void test_create_from_u32_random_value();
+void test_create_from_u32_zero_value();
+
+void test_create_general_case();
+void test_create_all_zeros();
+
+void test_get_bits_first_index();
+void test_get_bits_last_index();
+void test_get_bits_random_index();
+
 void test_add_zero();
 void test_add_addition_overflow();
 void test_add_2();
@@ -58,19 +68,25 @@ void test_subtract_zero();
 void test_subtract_negatively_overflow();
 void test_subtract_2();
 
-void test_rotate_left_no_rotation(); // not rotating by setting nbits to 0 in left rotation
-void test_rotate_left_multiple_of_32(); // rotating left multiple of 32 (number of bits within one element of an array)
-void test_rotate_left_multiple_of_256(); // rotating left multiple of 256 (total number of bits of the whole data)
-void test_rotate_left_more_than_256(); // rotating left more than 256
-void test_rotate_left_less_than_32(); // rotating left less than 32
-void test_rotate_left_between_32_and_256(); // rotating left between 32 and 256
+void test_negate_zero();
+void test_negate_max();
+void test_negate_min_positive();
+void test_negate_random();
+void test_negate_carry_propagation();
 
-void test_rotate_right_no_rotation(); // not rotating by setting nbits to 0 in right rotation
-void test_rotate_right_multiple_of_32(); // rotating right multiple of 32 (number of bits within one element of an array)
-void test_rotate_right_multiple_of_256(); // rotating right multiple of 256 (total number of bits of the whole data)
-void test_rotate_right_more_than_256(); // rotating right more than 256
-void test_rotate_right_less_than_32(); // rotating right less than 32
-void test_rotate_right_between_32_and_256(); // rotating right between 32 and 256
+void test_rotate_left_no_rotation();
+void test_rotate_left_multiple_of_32();
+void test_rotate_left_multiple_of_256();
+void test_rotate_left_more_than_256();
+void test_rotate_left_less_than_32();
+void test_rotate_left_between_32_and_256();
+
+void test_rotate_right_no_rotation();
+void test_rotate_right_multiple_of_32();
+void test_rotate_right_multiple_of_256();
+void test_rotate_right_more_than_256();
+void test_rotate_right_less_than_32();
+void test_rotate_right_between_32_and_256();
 
 
 int main(int argc, char **argv) {
@@ -92,6 +108,16 @@ int main(int argc, char **argv) {
   TEST(test_rotate_right);
   
   // Additional Tests ***
+  TEST(test_create_from_u32_random_value);
+  TEST(test_create_from_u32_zero_value);
+
+  TEST(test_create_general_case);
+  TEST(test_create_all_zeros);
+
+  TEST(test_get_bits_first_index);
+  TEST(test_get_bits_last_index);
+  TEST(test_get_bits_random_index);
+
   TEST(test_add_zero);
   TEST(test_add_addition_overflow);
   TEST(test_add_2);
@@ -99,6 +125,12 @@ int main(int argc, char **argv) {
   TEST(test_subtract_zero);
   TEST(test_subtract_negatively_overflow);
   TEST(test_subtract_2);
+
+  TEST(test_negate_zero);
+  TEST(test_negate_max);
+  TEST(test_negate_min_positive);
+  TEST(test_negate_random);
+  TEST(test_negate_carry_propagation);
   
   TEST(test_rotate_left_no_rotation);
   TEST(test_rotate_left_multiple_of_32);
@@ -326,6 +358,127 @@ void test_rotate_right(TestObjs *objs) {
  * Additional Test cases written by Yoohyuk Chang and Yongjae Lee
  */
 
+// Test function to create from unsigned 32 bit random value
+void test_create_from_u32_random_value() {
+  uint32_t test = 0x12345678U;
+  UInt256 result = uint256_create_from_u32(test);
+  
+  ASSERT(0x12345678U == result.data[0]);
+  ASSERT(0x00000000U == result.data[1]);
+  ASSERT(0x00000000U == result.data[2]);
+  ASSERT(0x00000000U == result.data[3]);
+  ASSERT(0x00000000U == result.data[4]);
+  ASSERT(0x00000000U == result.data[5]);
+  ASSERT(0x00000000U == result.data[6]);
+  ASSERT(0x00000000U == result.data[7]);
+}
+
+// Test function to create from unsigned 32 bit zero value
+void test_create_from_u32_zero_value() {
+  uint32_t test = 0x00000000U;
+  UInt256 result = uint256_create_from_u32(test);
+  
+  ASSERT(0x00000000U == result.data[0]);
+  ASSERT(0x00000000U == result.data[1]);
+  ASSERT(0x00000000U == result.data[2]);
+  ASSERT(0x00000000U == result.data[3]);
+  ASSERT(0x00000000U == result.data[4]);
+  ASSERT(0x00000000U == result.data[5]);
+  ASSERT(0x00000000U == result.data[6]);
+  ASSERT(0x00000000U == result.data[7]);
+}
+
+// Test 'create' function (general case) with random values
+void test_create_general_case() {
+  uint32_t test[8] = {0};
+  test[0] = 0x12345678U;
+  test[1] = 0x23456789U;
+  test[2] = 0x3456789AU;
+  test[3] = 0x456789ABU;
+  test[4] = 0x56789ABCU;
+  test[5] = 0x6789ABCDU;
+  test[6] = 0x789ABCDEU;
+  test[7] = 0x89ABCDEFU;
+
+  UInt256 result = uint256_create(test);
+
+  ASSERT(0x12345678U == result.data[0]);
+  ASSERT(0x23456789U == result.data[1]);
+  ASSERT(0x3456789AU == result.data[2]);
+  ASSERT(0x456789ABU == result.data[3]);
+  ASSERT(0x56789ABCU == result.data[4]);
+  ASSERT(0x6789ABCDU == result.data[5]);
+  ASSERT(0x789ABCDEU == result.data[6]);
+  ASSERT(0x89ABCDEFU == result.data[7]);
+}
+
+// Test 'create' function with all zeros
+void test_create_all_zeros() {
+  uint32_t test[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+
+  UInt256 result = uint256_create(test);
+
+  ASSERT(0x00000000U == result.data[0]);
+  ASSERT(0x00000000U == result.data[1]);
+  ASSERT(0x00000000U == result.data[2]);
+  ASSERT(0x00000000U == result.data[3]);
+  ASSERT(0x00000000U == result.data[4]);
+  ASSERT(0x00000000U == result.data[5]);
+  ASSERT(0x00000000U == result.data[6]);
+  ASSERT(0x00000000U == result.data[7]);
+}
+
+// Test 'uint256_get_bits' function for a random value (general case). Getting the first index value
+void test_get_bits_first_index() {
+  UInt256 test = {0};
+  test.data[0] = 0x00000011U;
+  test.data[1] = 0x00000022U;
+  test.data[2] = 0x00000033U;
+  test.data[3] = 0x00000044U;
+  test.data[4] = 0x00000055U;
+  test.data[5] = 0x00000066U;
+  test.data[6] = 0x00000077U;
+  test.data[7] = 0x00000088U;
+
+  unsigned index = 0;
+  uint32_t result = uint256_get_bits(test, index);
+  ASSERT(0x00000011U == result);
+}
+
+// Test 'uint256_get_bits' function for a random value (general case). Getting the last index value
+void test_get_bits_last_index(){
+  UInt256 test = {0};
+  test.data[0] = 0x00000011U;
+  test.data[1] = 0x00000022U;
+  test.data[2] = 0x00000033U;
+  test.data[3] = 0x00000044U;
+  test.data[4] = 0x00000055U;
+  test.data[5] = 0x00000066U;
+  test.data[6] = 0x00000077U;
+  test.data[7] = 0x00000088U;
+
+  unsigned index = 7;
+  uint32_t result = uint256_get_bits(test, index);
+  ASSERT(0x00000088U == result);
+}
+
+// Test 'uint256_get_bits' function for a random value (general case). Getting a random index
+void test_get_bits_random_index() {
+  UInt256 test = {0};
+  test.data[0] = 0x00000011U;
+  test.data[1] = 0x00000022U;
+  test.data[2] = 0x00000033U;
+  test.data[3] = 0x00000044U;
+  test.data[4] = 0x00000055U;
+  test.data[5] = 0x00000066U;
+  test.data[6] = 0x00000077U;
+  test.data[7] = 0x00000088U;
+
+  unsigned index = 3;
+  uint32_t result = uint256_get_bits(test, index);
+  ASSERT(0x00000044U == result);
+}
+
 // Test function to add 0 to a value
 void test_add_zero() {
   UInt256 test = {0};
@@ -424,7 +577,7 @@ void test_subtract_zero() {
   test.data[6] = 0x00000077U;
   test.data[7] = 0x00000088U;
 
-  UInt256 zero = {0};  // A UInt256 representing zero
+  UInt256 zero = {0};
 
   UInt256 result = uint256_sub(test, zero); 
 
@@ -465,6 +618,7 @@ void test_subtract_negatively_overflow() {
   ASSERT(0xFFFFFFFFU == result.data[7]); 
 }
 
+// General test function for subtraction
 void test_subtract_2() {
   UInt256 left = {0};
   left.data[0] = 0xa1234567U;
@@ -496,6 +650,98 @@ void test_subtract_2() {
   ASSERT(0x90123456U == result.data[5]);
   ASSERT(0x01234567U == result.data[6]);
   ASSERT(0x01234567U == result.data[7]);
+}
+
+// Test function to negate 0
+void test_negate_zero() {
+  UInt256 test = {0};
+  UInt256 result = uint256_negate(test);
+  for (int i = 0; i < 8; i++) {
+    ASSERT(0 == result.data[i]);
+  }
+}
+
+// Test function to negate the maximum value
+void test_negate_max() {
+  UInt256 test = {0};
+  test.data[0] = 0xFFFFFFFFU;
+  test.data[1] = 0xFFFFFFFFU;
+  test.data[2] = 0xFFFFFFFFU;
+  test.data[3] = 0xFFFFFFFFU;
+  test.data[4] = 0xFFFFFFFFU;
+  test.data[5] = 0xFFFFFFFFU;
+  test.data[6] = 0xFFFFFFFFU;
+  test.data[7] = 0xFFFFFFFFU;
+
+  UInt256 result = uint256_negate(test);
+  ASSERT(1 == result.data[0]);
+  for (int i = 1; i < 8; i++) {
+    ASSERT(0 == result.data[i]);
+  }
+}
+
+// Test function to negate the minimum postive value
+void test_negate_min_positive() {
+  UInt256 test = {0};
+  test.data[0] = 0x00000001U;
+  test.data[1] = 0x00000000U;
+  test.data[2] = 0x00000000U;
+  test.data[3] = 0x00000000U;
+  test.data[4] = 0x00000000U;
+  test.data[5] = 0x00000000U;
+  test.data[6] = 0x00000000U;
+  test.data[7] = 0x00000000U;
+  UInt256 result = uint256_negate(test);
+  ASSERT(0xFFFFFFFFU == result.data[0]);
+  for (int i = 1; i < 8; i++) {
+    ASSERT(0xFFFFFFFFU == result.data[i]);
+  }
+}
+
+// Test function to negate random value
+void test_negate_random() {
+  UInt256 test = {0};
+  test.data[0] = 0x12345678U;
+  test.data[1] = 0x23456789U;
+  test.data[2] = 0x34567890U;
+  test.data[3] = 0x45678901U;
+  test.data[4] = 0x56789012U;
+  test.data[5] = 0x67890123U;
+  test.data[6] = 0x78901234U;
+  test.data[7] = 0x89012345U;
+
+  UInt256 result = uint256_negate(test);
+  ASSERT(0xEDCBA988U == result.data[0]);
+  ASSERT(0xDCBA9876U == result.data[1]);
+  ASSERT(0xCBA9876FU == result.data[2]);
+  ASSERT(0xBA9876FEU == result.data[3]);
+  ASSERT(0xA9876FEDU == result.data[4]);
+  ASSERT(0x9876FEDCU == result.data[5]);
+  ASSERT(0x876FEDCBU == result.data[6]);
+  ASSERT(0x76FEDCBAU == result.data[7]);
+}
+
+// Test function 1 for handling carry propagation properly in negation
+void test_negate_carry_propagation() {
+  UInt256 test = {0};
+  test.data[0] = 0xFFFFFFFFU;
+  test.data[1] = 0xFFFFFFFFU;
+  test.data[2] = 0xFFFFFFFFU;
+  test.data[3] = 0x00000000U;
+  test.data[4] = 0x00000000U;
+  test.data[5] = 0x00000000U;
+  test.data[6] = 0x00000000U;
+  test.data[7] = 0x00000000U;
+
+  UInt256 result = uint256_negate(test);
+  ASSERT(0x00000001U == result.data[0]);
+  ASSERT(0x00000000U == result.data[1]);
+  ASSERT(0x00000000U == result.data[2]);
+  ASSERT(0xFFFFFFFFU == result.data[3]);
+  ASSERT(0xFFFFFFFFU == result.data[4]);
+  ASSERT(0xFFFFFFFFU == result.data[5]);
+  ASSERT(0xFFFFFFFFU == result.data[6]);
+  ASSERT(0xFFFFFFFFU == result.data[7]);
 }
 
 // not rotating by setting nbits to 0 in left rotation
