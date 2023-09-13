@@ -190,30 +190,37 @@ UInt256 uint256_negate(UInt256 val) {
 // the left.  Any bits shifted past the most significant bit
 // should be shifted back into the least significant bits.
 UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
+  if (nbits == 0) {
+    return val;
+  }
   UInt256 result = {0};
-
+  // Account for a 256-bit full cycle
+  nbits = nbits % 256;
+  // Calculate how many block-move (pushing one full array element to the next) we should do
   unsigned int numRotationsOfOneFullBlock = nbits / 32;
+  // Calculate how many bit move we need to do within an array element (block)
   unsigned int numRotationsWithinBlock = nbits % 32;
 
-  // Initial Full 32-bit Block Rotation
+  // Block-move 
   for (unsigned int i = 0; i < 8; i++) {
     unsigned int newIndex = (i + numRotationsOfOneFullBlock) % 8;
     result.data[newIndex] = val.data[i];
   }
-
-  // Shift within each 32-bit block and calculate truncated values
-  UInt256 tempShifted = {0};
-  UInt256 tempTruncated = {0};
+  // If numRotationsWithinBlock is 0, we don't need further manipulations
+  if (numRotationsWithinBlock == 0) {
+    return result;
+  }
+  // Shift within each 32-bit block and stores the truncated values
+  UInt256 tempShifted = {0}; // Stores the shifted bits, but this is truncated
+  UInt256 tempTruncated = {0}; // Stores the truncated values
   for (unsigned int i = 0; i < 8; i++) {
     tempShifted.data[i] = result.data[i] << numRotationsWithinBlock;
     tempTruncated.data[i] = result.data[i] >> (32 - numRotationsWithinBlock);
   }
-
   // Combine shifted and truncated values
   for (unsigned int i = 0; i < 8; i++) {
-    result.data[i] = tempShifted.data[i];
-    unsigned int prevIndex = (i + 7) % 8;
-    result.data[i] |= tempTruncated.data[prevIndex];
+    int prevIndex = (i + 7) % 8;
+    result.data[i] = tempShifted.data[i] | tempTruncated.data[prevIndex];
   }
 
   return result;
@@ -224,31 +231,59 @@ UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
 // the right. Any bits shifted past the least significant bit
 // should be shifted back into the most significant bits.
 UInt256 uint256_rotate_right(UInt256 val, unsigned nbits) {
+  if (nbits == 0) {
+    return val;
+  }
   UInt256 result = {0};
-
+  // Account for a 256-bit full cycle
+  nbits = nbits % 256;
+  // Calculate how many block-move (pushing one full array element to the next) we should do
   unsigned int numRotationsOfOneFullBlock = nbits / 32;
+  // Calculate how many bit move we need to do within an array element (block)
   unsigned int numRotationsWithinBlock = nbits % 32;
-
-  numRotationsOfOneFullBlock = numRotationsOfOneFullBlock % 8;
-
+  
+  // Block-move
   for (int i = 7; i >= 0; i--) {
     int newIndex = (i - numRotationsOfOneFullBlock + 8) % 8;
     result.data[newIndex] = val.data[i];
   }
-
-  UInt256 tempShifted = {0};
-  UInt256 tempTruncated = {0};
+  // If numRotationsWithinBlock is 0, no further manipulation is needed.
+  if (numRotationsWithinBlock == 0) {
+    return result;
+  }
+  // Shift within each 32-bit block and stores the truncated values
+  UInt256 tempShifted = {0}; // Stores the shifted bits, but this is truncated
+  UInt256 tempTruncated = {0}; // Stores the truncated values
   for (int i = 7; i >= 0; i--) {
-    // temporarily stores the shifted data. It does not include the trancated value yet.
     tempShifted.data[i] = result.data[i] >> numRotationsWithinBlock;
-    // temporarily stores the trancated values
     tempTruncated.data[i] = result.data[i] << (32 - numRotationsWithinBlock); 
   }
-
+  // Combine shifted and truncated values
   for (int i = 7; i >= 0; i--) {
-    int nextIndex = (i - 1 + 8) % 8;
-    result.data[nextIndex]  = tempShifted.data[nextIndex] | tempTruncated.data[i];
+    int prevIndex = (i + 1) % 8;
+    result.data[i] = tempShifted.data[i] | tempTruncated.data[prevIndex];
   }
-
+  
   return result;
 }
+
+// int main() {
+
+//   UInt256 test = {0};
+//   test.data[0] = 0xDD;
+//   test.data[1] = 0xCC;
+//   test.data[2] = 0xBB;
+//   test.data[3] = 0xAA;
+//   test.data[4] = 0x99;
+//   test.data[5] = 0x88;
+//   test.data[6] = 0x77;
+//   test.data[7] = 0x66;
+
+//   UInt256 new = uint256_rotate_right(test, 32);
+
+//   for (int i = 0; i < 8; i++) {
+//     printf("%x ", new.data[i]);
+//   }
+  
+//   return 0;
+// }
