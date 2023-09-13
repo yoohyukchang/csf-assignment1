@@ -1,8 +1,8 @@
 /*
  * A simple C library implementation operations on a 256-bit unsigned integer data type
  * CSF Assignment 1 - Milestone 1
- * Yoohyuk Chang
- * ychang82@jhu.edu
+ * Yoohyuk Chang  * ychang82@jhu.edu
+ * Yongjae Lee  * ylee207@jhu.edu
  */
 
 #include <assert.h>
@@ -63,10 +63,8 @@ UInt256 uint256_create_from_hex(const char *hex) {
     char factStr[9] = {0};
     for (int j = 0; j < 8; j++) {
     factStr[7 - j] = hex[len - 1 - j - i];
-    //printf("%c", hex[len - 1 - j - i]);
     }
     factStr[8] = '\0';  
-    //printf("factory String: %s %lu \n", factStr, strlen(factStr));
     result.data[uIntIndex] = strtoul(factStr , NULL, 16);
     uIntIndex++;
   }
@@ -132,32 +130,7 @@ UInt256 uint256_add(UInt256 left, UInt256 right) {
   }
   return result;
 }
-
- //int main(){
-//   //   char *hex = "A2B3C4D5E6F7890ABCDEF0123456789";
-//   // UInt256 result = uint256_create_from_hex(hex);
-//   //  for(int i =0; i <8; i++) {
-//   //    printf("%u \n", result.data[i]);
-//   //  }
-//   //  char * str = uint256_format_as_hex(result);
-//   // printf("%s", str);
-//      UInt256 a = {{1, 0, 0, 0, 0, 0, 0, 0}};
-//      UInt256 b = {{1, 0, 0, 0, 0, 0, 0, 0}};
-//      UInt256 sum = uint256_sub(a,b);
-
-//     for (int i = 7; i >= 0; i--) {
-//         printf("%u ", sum.data[i]);
-//      }
-  
-//  }
-
-  // for (int i = 7; i >= 0; i--) {
-  //       printf("%u ", right.data[i]);
-  //    }
-  // for (int i = 0; i < 8; i++) {
-  //   uint32_t sum = left.data[i] + right.data[i]; 
-  //   result.data[i] = sum;  
-  // }
+ 
 // Compute the difference of two UInt256 values.
 UInt256 uint256_sub(UInt256 left, UInt256 right) {
   UInt256 result;

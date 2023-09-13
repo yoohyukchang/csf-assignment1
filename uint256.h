@@ -1,8 +1,8 @@
 /*
  * A simple C library implementation operations on a 256-bit unsigned integer data type
  * CSF Assignment 1 - Milestone 1
- * Yoohyuk Chang
- * ychang82@jhu.edu
+ * Yoohyuk Chang  * ychang82@jhu.edu
+ * Yongjae Lee  * ylee207@jhu.edu
  */
 
 #ifndef UINT256_H

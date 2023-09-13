@@ -88,6 +88,14 @@ void test_rotate_right_more_than_256();
 void test_rotate_right_less_than_32();
 void test_rotate_right_between_32_and_256();
 
+void test_uint256_format_as_hex_trailing_zeros();
+void test_uint256_format_as_hex_middle_zeros();
+void test_uint256_format_as_hex_trailing_zeros();
+
+void test_uint256_create_from_hex_leading_zeros();
+void test_uint256_create_from_hex_larger_than_256();
+void test_uint256_create_from_hex_small_number();
+void test_uint256_create_from_hex_not_multiple_or_8();
 
 int main(int argc, char **argv) {
   if (argc > 1) {
@@ -146,6 +154,14 @@ int main(int argc, char **argv) {
   TEST(test_rotate_right_less_than_32);
   TEST(test_rotate_right_between_32_and_256);
 
+  TEST(test_uint256_format_as_hex_trailing_zeros);
+  TEST(test_uint256_format_as_hex_middle_zeros);
+  TEST(test_uint256_format_as_hex_trailing_zeros);
+
+  TEST(test_uint256_create_from_hex_leading_zeros);
+  TEST(test_uint256_create_from_hex_larger_than_256);
+  TEST(test_uint256_create_from_hex_small_number);
+  TEST(test_uint256_create_from_hex_not_multiple_or_8);
   TEST_FINI();
 }
 
@@ -241,7 +257,6 @@ void test_create_from_hex(TestObjs *objs) {
   UInt256 one = uint256_create_from_hex("1");
   ASSERT_SAME(objs->one, one);
   
-
   UInt256 max = uint256_create_from_hex("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
   ASSERT_SAME(objs->max, max);
 }
@@ -1031,4 +1046,65 @@ void test_rotate_right_between_32_and_256() {
   ASSERT(0xD0000006U == result.data[6]);
   ASSERT(0xC000000DU == result.data[7]);
 }
+
+void test_uint256_format_as_hex_leading_zeros() {
+  char * s;
+  UInt256 val2 = {.data = {0xabcdef01, 0, 0, 0, 0, 0, 0,0 }};
+  s = uint256_format_as_hex(val2);
+  ASSERT(strcmp(s, "abcdef01") == 0);
+  free(s);
+}
+
+void test_uint256_format_as_hex_middle_zeros() {
+  char * s;
+  UInt256 val3 = {.data = {0, 0xabcdef01, 0, 0, 0, 0, 0, 0x12345678}};
+  s = uint256_format_as_hex(val3);
+  ASSERT(strcmp(s, "123456780000000000000000000000000000000000000000abcdef0100000000") == 0);
+  free(s);
+}
+
+void test_uint256_format_as_hex_trailing_zeros() {
+  char * s;
+  UInt256 val5 = {.data = {0, 0, 0, 0, 0, 0, 0, 0xabcdef}};
+  s = uint256_format_as_hex(val5);
+  ASSERT(strcmp(s, "abcdef00000000000000000000000000000000000000000000000000000000") == 0);
+  free(s);
+}
+
+void test_uint256_create_from_hex_leading_zeros() {
+  UInt256 result;
+  result = uint256_create_from_hex("000000000000000000000000000000000000000000000000ffffffffffffffff");
+  for (int i = 7; i >= 2; i--) {
+      ASSERT(result.data[i] == 0);
+  }
+  ASSERT(result.data[0] == 0xffffffff);
+  ASSERT(result.data[1] == 0xffffffff);
+
+}
+
+void test_uint256_create_from_hex_larger_than_256() {
+  UInt256 result;
+  result = uint256_create_from_hex("1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef");
+  for (int i =0, j = 1; i < 8 && j < 8; i += 2, j += 2) {
+    ASSERT(result.data[i] == 0x90abcdef);
+    ASSERT(result.data[j] == 0x12345678);
+  }
+}
+
+void test_uint256_create_from_hex_small_number() {
+  UInt256 result;
+  result = uint256_create_from_hex("abcd");
+  ASSERT(result.data[0] == 0xabcd);
+  for (int i = 1; i < 8; i++) {
+      ASSERT(result.data[i] == 0);
+  }
+}
+
+void test_uint256_create_from_hex_not_multiple_or_8() {
+  UInt256 result;
+  result = uint256_create_from_hex("abcde12345");
+  ASSERT(result.data[0] == 0xcde12345);
+  ASSERT(result.data[1] == 0xab);
+}
+
 
