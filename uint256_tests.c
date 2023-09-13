@@ -52,9 +52,11 @@ void test_rotate_right(TestObjs *objs);
 // Additional Tests ***
 void test_add_zero();
 void test_add_addition_overflow();
+void test_add_2();
 
 void test_subtract_zero();
 void test_subtract_negatively_overflow();
+void test_subtract_2();
 
 void test_rotate_left_no_rotation(); // not rotating by setting nbits to 0 in left rotation
 void test_rotate_left_multiple_of_32(); // rotating left multiple of 32 (number of bits within one element of an array)
@@ -92,9 +94,11 @@ int main(int argc, char **argv) {
   // Additional Tests ***
   TEST(test_add_zero);
   TEST(test_add_addition_overflow);
+  TEST(test_add_2);
 
   TEST(test_subtract_zero);
   TEST(test_subtract_negatively_overflow);
+  TEST(test_subtract_2);
   
   TEST(test_rotate_left_no_rotation);
   TEST(test_rotate_left_multiple_of_32);
@@ -375,6 +379,39 @@ void test_add_addition_overflow() {
   ASSERT(0x00000000U == result.data[7]); // Carried over
 }
 
+// General test function for add
+void test_add_2() {
+  UInt256 left = {0};
+  left.data[0] = 0xbd3f2275U;
+  left.data[1] = 0xdaade3feU;
+  left.data[2] = 0x8f8991d5U;
+  left.data[3] = 0x4b5feaa9U;
+  left.data[4] = 0x19448805U;
+  left.data[5] = 0x525c1526U;
+  left.data[6] = 0x4719744bU;
+  left.data[7] = 0x50a3b0bcU;
+
+  UInt256 right = {0};
+  right.data[0] = 0x90066acbU;
+  right.data[1] = 0xf3e33d14U;
+  right.data[2] = 0x39edfa60U;
+  right.data[3] = 0xb3da172dU;
+  right.data[4] = 0x2b92cedeU;
+  right.data[5] = 0x2594beccU;
+  right.data[6] = 0x0d571731U;
+  right.data[7] = 0x996fc7bdU;
+
+  UInt256 result = uint256_add(left, right);
+  ASSERT(0x4d458d40U == result.data[0]);
+  ASSERT(0xce912113U == result.data[1]);
+  ASSERT(0xc9778c36U == result.data[2]);
+  ASSERT(0xff3a01d6U == result.data[3]);
+  ASSERT(0x44d756e3U == result.data[4]);
+  ASSERT(0x77f0d3f2U == result.data[5]);
+  ASSERT(0x54708b7cU == result.data[6]);
+  ASSERT(0xea137879U == result.data[7]);
+}
+
 // Test function to subtract 0 from a value
 void test_subtract_zero() {
   UInt256 test = {0};
@@ -426,6 +463,39 @@ void test_subtract_negatively_overflow() {
   ASSERT(0xFFFFFFFFU == result.data[5]); 
   ASSERT(0xFFFFFFFFU == result.data[6]); 
   ASSERT(0xFFFFFFFFU == result.data[7]); 
+}
+
+void test_subtract_2() {
+  UInt256 left = {0};
+  left.data[0] = 0xa1234567U;
+  left.data[1] = 0xb2345678U;
+  left.data[2] = 0xc3456789U;
+  left.data[3] = 0xd456789aU;
+  left.data[4] = 0xe56789abU;
+  left.data[5] = 0xf6789abcU;
+  left.data[6] = 0x789abcdeU;
+  left.data[7] = 0x89abcdefU;
+
+  UInt256 right = {0};
+  right.data[0] = 0x11111111U;
+  right.data[1] = 0x22222222U;
+  right.data[2] = 0x33333333U;
+  right.data[3] = 0x44444444U;
+  right.data[4] = 0x55555555U;
+  right.data[5] = 0x66666666U;
+  right.data[6] = 0x77777777U;
+  right.data[7] = 0x88888888U;
+
+  UInt256 result = uint256_sub(left, right);
+
+  ASSERT(0x90123456U == result.data[0]);
+  ASSERT(0x90123456U == result.data[1]);
+  ASSERT(0x90123456U == result.data[2]);
+  ASSERT(0x90123456U == result.data[3]);
+  ASSERT(0x90123456U == result.data[4]);
+  ASSERT(0x90123456U == result.data[5]);
+  ASSERT(0x01234567U == result.data[6]);
+  ASSERT(0x01234567U == result.data[7]);
 }
 
 // not rotating by setting nbits to 0 in left rotation
