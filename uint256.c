@@ -85,10 +85,9 @@ char *uint256_format_as_hex(UInt256 val) {
       break;
     }
     if (i == 0 && val.data[i] == 0) {
-        hex = malloc(2);  // 1 for '0' and 1 for '\0'
-        sprintf(hex, "0");
-
-        return hex;
+      hex = malloc(2);  // 1 for '0' and 1 for '\0'
+      sprintf(hex, "0");
+      return hex;
     }
   }
   int size = (startIndex + 1) * 8 + 1;
@@ -98,10 +97,10 @@ char *uint256_format_as_hex(UInt256 val) {
 
   for (int i = startIndex; i >= 0; i--) {
     if (i == startIndex) {
-            currentPos += sprintf(currentPos, "%x", val.data[i]);  // format without leading 0s for the first non-zero value
-        } else {
-            currentPos += sprintf(currentPos, "%08x", val.data[i]);  // format with leading 0s for the rest
-        }
+      currentPos += sprintf(currentPos, "%x", val.data[i]);  // format without leading 0s for the first non-zero value
+    } else {
+      currentPos += sprintf(currentPos, "%08x", val.data[i]);  // format with leading 0s for the rest
+    }
   }
   return hex;
 }
@@ -265,18 +264,27 @@ UInt256 uint256_rotate_right(UInt256 val, unsigned nbits) {
 }
 
 // int main() {
+//   UInt256 left = {0};
+//   left.data[0] = 0xa1234567U;
+//   left.data[1] = 0xb2345678U;
+//   left.data[2] = 0xc3456789U;
+//   left.data[3] = 0xd456789aU;
+//   left.data[4] = 0xe56789abU;
+//   left.data[5] = 0xf6789abcU;
+//   left.data[6] = 0x789abcdeU;
+//   left.data[7] = 0x89abcdefU;
 
-//   UInt256 test = {0};
-//   test.data[0] = 0x000000DDU;
-//   test.data[1] = 0x000000CCU;
-//   test.data[2] = 0x000000BBU;
-//   test.data[3] = 0x000000AAU;
-//   test.data[4] = 0x00000099U;
-//   test.data[5] = 0x00000088U;
-//   test.data[6] = 0x00000077U;
-//   test.data[7] = 0x00000066U;
+//   UInt256 right = {0};
+//   right.data[0] = 0x11111111U;
+//   right.data[1] = 0x22222222U;
+//   right.data[2] = 0x33333333U;
+//   right.data[3] = 0x44444444U;
+//   right.data[4] = 0x55555555U;
+//   right.data[5] = 0x66666666U;
+//   right.data[6] = 0x77777777U;
+//   right.data[7] = 0x88888888U;
 
-//   UInt256 result = uint256_rotate_right(test, 36);
+//   UInt256 result = uint256_sub(left, right);
 
 //   for (int i = 0; i < 8; i++) {
 //     printf("%x ", result.data[i]);
