@@ -49,6 +49,28 @@ void test_negate(TestObjs *objs);
 void test_rotate_left(TestObjs *objs);
 void test_rotate_right(TestObjs *objs);
 
+// Additional Tests ***
+void test_add_zero();
+void test_add_addition_overflow();
+
+void test_subtract_zero();
+void test_subtract_negatively_overflow();
+
+void test_rotate_left_no_rotation(); // not rotating by setting nbits to 0 in left rotation
+void test_rotate_left_multiple_of_32(); // rotating left multiple of 32 (number of bits within one element of an array)
+void test_rotate_left_multiple_of_256(); // rotating left multiple of 256 (total number of bits of the whole data)
+void test_rotate_left_more_than_256(); // rotating left more than 256
+void test_rotate_left_less_than_32(); // rotating left less than 32
+void test_rotate_left_between_32_and_256(); // rotating left between 32 and 256
+
+void test_rotate_right_no_rotation(); // not rotating by setting nbits to 0 in right rotation
+void test_rotate_right_multiple_of_32(); // rotating right multiple of 32 (number of bits within one element of an array)
+void test_rotate_right_multiple_of_256(); // rotating right multiple of 256 (total number of bits of the whole data)
+void test_rotate_right_more_than_256(); // rotating right more than 256
+void test_rotate_right_less_than_32(); // rotating right less than 32
+void test_rotate_right_between_32_and_256(); // rotating right between 32 and 256
+
+
 int main(int argc, char **argv) {
   if (argc > 1) {
     tctest_testname_to_execute = argv[1];
@@ -66,6 +88,27 @@ int main(int argc, char **argv) {
   TEST(test_negate);
   TEST(test_rotate_left);
   TEST(test_rotate_right);
+  
+  // Additional Tests ***
+  TEST(test_add_zero);
+  TEST(test_add_addition_overflow);
+
+  TEST(test_subtract_zero);
+  TEST(test_subtract_negatively_overflow);
+  
+  TEST(test_rotate_left_no_rotation);
+  TEST(test_rotate_left_multiple_of_32);
+  TEST(test_rotate_left_multiple_of_256);
+  TEST(test_rotate_left_more_than_256);
+  TEST(test_rotate_left_less_than_32);
+  TEST(test_rotate_left_between_32_and_256);
+
+  TEST(test_rotate_right_no_rotation);
+  TEST(test_rotate_right_multiple_of_32);
+  TEST(test_rotate_right_multiple_of_256);
+  TEST(test_rotate_right_more_than_256);
+  TEST(test_rotate_right_less_than_32);
+  TEST(test_rotate_right_between_32_and_256);
 
   TEST_FINI();
 }
@@ -270,3 +313,406 @@ void test_rotate_right(TestObjs *objs) {
   ASSERT(0U == result.data[6]);
   ASSERT(0xBCD00000U == result.data[7]);
 }
+
+
+
+
+
+/*
+ * Additional Test cases written by Yoohyuk Chang and Yongjae Lee
+ */
+
+// Test function to add 0 to a value
+void test_add_zero() {
+  UInt256 test = {0};
+  test.data[0] = 0x00000011U;
+  test.data[1] = 0x00000022U;
+  test.data[2] = 0x00000033U;
+  test.data[3] = 0x00000044U;
+  test.data[4] = 0x00000055U;
+  test.data[5] = 0x00000066U;
+  test.data[6] = 0x00000077U;
+  test.data[7] = 0x00000088U;
+
+  UInt256 zero = {0}; // UInt256 representing zero
+
+  UInt256 result = uint256_add(test, zero);
+
+  ASSERT(0x00000011U == result.data[0]);
+  ASSERT(0x00000022U == result.data[1]);
+  ASSERT(0x00000033U == result.data[2]);
+  ASSERT(0x00000044U == result.data[3]);
+  ASSERT(0x00000055U == result.data[4]);
+  ASSERT(0x00000066U == result.data[5]);
+  ASSERT(0x00000077U == result.data[6]);
+  ASSERT(0x00000088U == result.data[7]);
+}
+
+// Test function to cause an addition to overflow
+void test_add_addition_overflow() {
+  UInt256 test = {0};
+  test.data[0] = 0xFFFFFFFFU;
+  test.data[1] = 0xFFFFFFFFU;
+  test.data[2] = 0xFFFFFFFFU;
+  test.data[3] = 0xFFFFFFFFU;
+  test.data[4] = 0xFFFFFFFFU;
+  test.data[5] = 0xFFFFFFFFU;
+  test.data[6] = 0xFFFFFFFFU;
+  test.data[7] = 0xFFFFFFFFU;
+
+  UInt256 overflow_adder = {0};
+  overflow_adder.data[0] = 0x00000001U;
+
+  UInt256 result = uint256_add(test, overflow_adder);
+
+  ASSERT(0x00000000U == result.data[0]); // Overflowed
+  ASSERT(0x00000000U == result.data[1]); // Carried over
+  ASSERT(0x00000000U == result.data[2]); // Carried over
+  ASSERT(0x00000000U == result.data[3]); // Carried over
+  ASSERT(0x00000000U == result.data[4]); // Carried over
+  ASSERT(0x00000000U == result.data[5]); // Carried over
+  ASSERT(0x00000000U == result.data[6]); // Carried over
+  ASSERT(0x00000000U == result.data[7]); // Carried over
+}
+
+// Test function to subtract 0 from a value
+void test_subtract_zero() {
+  UInt256 test = {0};
+  test.data[0] = 0x00000011U;
+  test.data[1] = 0x00000022U;
+  test.data[2] = 0x00000033U;
+  test.data[3] = 0x00000044U;
+  test.data[4] = 0x00000055U;
+  test.data[5] = 0x00000066U;
+  test.data[6] = 0x00000077U;
+  test.data[7] = 0x00000088U;
+
+  UInt256 zero = {0};  // A UInt256 representing zero
+
+  UInt256 result = uint256_sub(test, zero); 
+
+  ASSERT(0x00000011U == result.data[0]);
+  ASSERT(0x00000022U == result.data[1]);
+  ASSERT(0x00000033U == result.data[2]);
+  ASSERT(0x00000044U == result.data[3]);
+  ASSERT(0x00000055U == result.data[4]);
+  ASSERT(0x00000066U == result.data[5]);
+  ASSERT(0x00000077U == result.data[6]);
+  ASSERT(0x00000088U == result.data[7]);
+}
+
+// Test function to cause a negative overflow (underflow)
+void test_subtract_negatively_overflow() {
+  UInt256 test = {0};
+  test.data[0] = 0x00000000U;
+  test.data[1] = 0x00000000U;
+  test.data[2] = 0x00000000U;
+  test.data[3] = 0x00000000U;
+  test.data[4] = 0x00000000U;
+  test.data[5] = 0x00000000U;
+  test.data[6] = 0x00000000U;
+  test.data[7] = 0x00000000U;
+
+  UInt256 negative_overflow_subtracter = {0};
+  negative_overflow_subtracter.data[0] = 0x00000001U;
+
+  UInt256 result = uint256_sub(test, negative_overflow_subtracter);
+
+  ASSERT(0xFFFFFFFFU == result.data[0]); // Underflowed
+  ASSERT(0xFFFFFFFFU == result.data[1]); 
+  ASSERT(0xFFFFFFFFU == result.data[2]); 
+  ASSERT(0xFFFFFFFFU == result.data[3]); 
+  ASSERT(0xFFFFFFFFU == result.data[4]); 
+  ASSERT(0xFFFFFFFFU == result.data[5]); 
+  ASSERT(0xFFFFFFFFU == result.data[6]); 
+  ASSERT(0xFFFFFFFFU == result.data[7]); 
+}
+
+// not rotating by setting nbits to 0 in left rotation
+void test_rotate_left_no_rotation() {
+  UInt256 test = {0};
+  test.data[0] = 0x00000011U;
+  test.data[1] = 0x00000022U;
+  test.data[2] = 0x00000033U;
+  test.data[3] = 0x00000044U;
+  test.data[4] = 0x00000055U;
+  test.data[5] = 0x00000066U;
+  test.data[6] = 0x00000077U;
+  test.data[7] = 0x00000088U;
+
+  UInt256 result = uint256_rotate_left(test, 0);
+
+  ASSERT(0x00000011U == result.data[0]);
+  ASSERT(0x00000022U == result.data[1]);
+  ASSERT(0x00000033U == result.data[2]);
+  ASSERT(0x00000044U == result.data[3]);
+  ASSERT(0x00000055U == result.data[4]);
+  ASSERT(0x00000066U == result.data[5]);
+  ASSERT(0x00000077U == result.data[6]);
+  ASSERT(0x00000088U == result.data[7]);
+}
+
+// rotating left multiple of 32 (number of bits within one element of an array)
+void test_rotate_left_multiple_of_32() {
+  UInt256 test = {0};
+  test.data[0] = 0x000000DDU;
+  test.data[1] = 0x000000CCU;
+  test.data[2] = 0x000000BBU;
+  test.data[3] = 0x000000AAU;
+  test.data[4] = 0x00000099U;
+  test.data[5] = 0x00000088U;
+  test.data[6] = 0x00000077U;
+  test.data[7] = 0x00000066U;
+
+  UInt256 result = uint256_rotate_left(test, 32);
+
+  ASSERT(0x00000066U == result.data[0]);
+  ASSERT(0x000000DDU == result.data[1]);
+  ASSERT(0x000000CCU == result.data[2]);
+  ASSERT(0x000000BBU == result.data[3]);
+  ASSERT(0x000000AAU == result.data[4]);
+  ASSERT(0x00000099U == result.data[5]);
+  ASSERT(0x00000088U == result.data[6]);
+  ASSERT(0x00000077U == result.data[7]);
+}
+
+// rotating left multiple of 256 (total number of bits of the whole data)
+void test_rotate_left_multiple_of_256() {
+  UInt256 test = {0};
+  test.data[0] = 0x000000DDU;
+  test.data[1] = 0x000000CCU;
+  test.data[2] = 0x000000BBU;
+  test.data[3] = 0x000000AAU;
+  test.data[4] = 0x00000099U;
+  test.data[5] = 0x00000088U;
+  test.data[6] = 0x00000077U;
+  test.data[7] = 0x00000066U;
+
+  UInt256 result = uint256_rotate_left(test, 256);
+
+  ASSERT(0x000000DDU == result.data[0]);
+  ASSERT(0x000000CCU == result.data[1]);
+  ASSERT(0x000000BBU == result.data[2]);
+  ASSERT(0x000000AAU == result.data[3]);
+  ASSERT(0x00000099U == result.data[4]);
+  ASSERT(0x00000088U == result.data[5]);
+  ASSERT(0x00000077U == result.data[6]);
+  ASSERT(0x00000066U == result.data[7]);
+}
+
+// rotating left more than 256
+void test_rotate_left_more_than_256() {
+  UInt256 test = {0};
+  test.data[0] = 0x000000DDU;
+  test.data[1] = 0x000000CCU;
+  test.data[2] = 0x000000BBU;
+  test.data[3] = 0x000000AAU;
+  test.data[4] = 0x00000099U;
+  test.data[5] = 0x00000088U;
+  test.data[6] = 0x00000077U;
+  test.data[7] = 0x00000066U;
+
+  UInt256 result = uint256_rotate_left(test, 260); // 4 more than 256
+
+  ASSERT(0x00000DD0U == result.data[0]);
+  ASSERT(0x00000CC0U == result.data[1]);
+  ASSERT(0x00000BB0U == result.data[2]);
+  ASSERT(0x00000AA0U == result.data[3]);
+  ASSERT(0x00000990U == result.data[4]);
+  ASSERT(0x00000880U == result.data[5]);
+  ASSERT(0x00000770U == result.data[6]);
+  ASSERT(0x00000660U == result.data[7]);
+}
+
+// rotating left less than 32
+void test_rotate_left_less_than_32() {
+  UInt256 test = {0};
+  test.data[0] = 0x000000DDU;
+  test.data[1] = 0x000000CCU;
+  test.data[2] = 0x000000BBU;
+  test.data[3] = 0x000000AAU;
+  test.data[4] = 0x00000099U;
+  test.data[5] = 0x00000088U;
+  test.data[6] = 0x00000077U;
+  test.data[7] = 0x00000066U;
+
+  UInt256 result = uint256_rotate_left(test, 4);
+
+  ASSERT(0x00000DD0U == result.data[0]);
+  ASSERT(0x00000CC0U == result.data[1]);
+  ASSERT(0x00000BB0U == result.data[2]);
+  ASSERT(0x00000AA0U == result.data[3]);
+  ASSERT(0x00000990U == result.data[4]);
+  ASSERT(0x00000880U == result.data[5]);
+  ASSERT(0x00000770U == result.data[6]);
+  ASSERT(0x00000660U == result.data[7]);
+}
+
+// rotating left between 32 and 256
+void test_rotate_left_between_32_and_256() {
+  UInt256 test = {0};
+  test.data[0] = 0x000000DDU;
+  test.data[1] = 0x000000CCU;
+  test.data[2] = 0x000000BBU;
+  test.data[3] = 0x000000AAU;
+  test.data[4] = 0x00000099U;
+  test.data[5] = 0x00000088U;
+  test.data[6] = 0x00000077U;
+  test.data[7] = 0x00000066U;
+
+  UInt256 result = uint256_rotate_left(test, 36); // 32 + 4
+
+  ASSERT(0x00000660U == result.data[0]);
+  ASSERT(0x00000DD0U == result.data[1]);
+  ASSERT(0x00000CC0U == result.data[2]);
+  ASSERT(0x00000BB0U == result.data[3]);
+  ASSERT(0x00000AA0U == result.data[4]);
+  ASSERT(0x00000990U == result.data[5]);
+  ASSERT(0x00000880U == result.data[6]);
+  ASSERT(0x00000770U == result.data[7]);  // Notice the last bit
+}
+
+// not rotating by setting nbits to 0 in right rotation
+void test_rotate_right_no_rotation() {
+  UInt256 test = {0};
+  test.data[0] = 0x00000011U;
+  test.data[1] = 0x00000022U;
+  test.data[2] = 0x00000033U;
+  test.data[3] = 0x00000044U;
+  test.data[4] = 0x00000055U;
+  test.data[5] = 0x00000066U;
+  test.data[6] = 0x00000077U;
+  test.data[7] = 0x00000088U;
+
+  UInt256 result = uint256_rotate_right(test, 0);
+
+  ASSERT(0x00000011U == result.data[0]);
+  ASSERT(0x00000022U == result.data[1]);
+  ASSERT(0x00000033U == result.data[2]);
+  ASSERT(0x00000044U == result.data[3]);
+  ASSERT(0x00000055U == result.data[4]);
+  ASSERT(0x00000066U == result.data[5]);
+  ASSERT(0x00000077U == result.data[6]);
+  ASSERT(0x00000088U == result.data[7]);
+}
+
+// rotating right multiple of 32 (number of bits within one element of an array)
+void test_rotate_right_multiple_of_32() {
+  UInt256 test = {0};
+  test.data[0] = 0x000000DDU;
+  test.data[1] = 0x000000CCU;
+  test.data[2] = 0x000000BBU;
+  test.data[3] = 0x000000AAU;
+  test.data[4] = 0x00000099U;
+  test.data[5] = 0x00000088U;
+  test.data[6] = 0x00000077U;
+  test.data[7] = 0x00000066U;
+
+  UInt256 result = uint256_rotate_right(test, 32);
+
+  ASSERT(0x000000CCU == result.data[0]);
+  ASSERT(0x000000BBU == result.data[1]);
+  ASSERT(0x000000AAU == result.data[2]);
+  ASSERT(0x00000099U == result.data[3]);
+  ASSERT(0x00000088U == result.data[4]);
+  ASSERT(0x00000077U == result.data[5]);
+  ASSERT(0x00000066U == result.data[6]);
+  ASSERT(0x000000DDU == result.data[7]);
+}
+
+// rotating right multiple of 256 (total number of bits of the whole data)
+void test_rotate_right_multiple_of_256() {
+  UInt256 test = {0};
+  test.data[0] = 0x000000DDU;
+  test.data[1] = 0x000000CCU;
+  test.data[2] = 0x000000BBU;
+  test.data[3] = 0x000000AAU;
+  test.data[4] = 0x00000099U;
+  test.data[5] = 0x00000088U;
+  test.data[6] = 0x00000077U;
+  test.data[7] = 0x00000066U;
+
+  UInt256 result = uint256_rotate_right(test, 256);
+
+  ASSERT(0x000000DDU == result.data[0]);
+  ASSERT(0x000000CCU == result.data[1]);
+  ASSERT(0x000000BBU == result.data[2]);
+  ASSERT(0x000000AAU == result.data[3]);
+  ASSERT(0x00000099U == result.data[4]);
+  ASSERT(0x00000088U == result.data[5]);
+  ASSERT(0x00000077U == result.data[6]);
+  ASSERT(0x00000066U == result.data[7]);
+}
+
+// rotating right more than 256
+void test_rotate_right_more_than_256() {
+  UInt256 test = {0};
+  test.data[0] = 0x000000DDU;
+  test.data[1] = 0x000000CCU;
+  test.data[2] = 0x000000BBU;
+  test.data[3] = 0x000000AAU;
+  test.data[4] = 0x00000099U;
+  test.data[5] = 0x00000088U;
+  test.data[6] = 0x00000077U;
+  test.data[7] = 0x00000066U;
+
+  UInt256 result = uint256_rotate_right(test, 260); // 4 more than 256
+
+  ASSERT(0xC000000DU == result.data[0]);
+  ASSERT(0xB000000CU == result.data[1]);
+  ASSERT(0xA000000BU == result.data[2]);
+  ASSERT(0x9000000AU == result.data[3]);
+  ASSERT(0x80000009U == result.data[4]);
+  ASSERT(0x70000008U == result.data[5]);
+  ASSERT(0x60000007U == result.data[6]);
+  ASSERT(0xD0000006U == result.data[7]);
+}
+
+// rotating right less than 32
+void test_rotate_right_less_than_32() {
+  UInt256 test = {0};
+  test.data[0] = 0x000000DDU;
+  test.data[1] = 0x000000CCU;
+  test.data[2] = 0x000000BBU;
+  test.data[3] = 0x000000AAU;
+  test.data[4] = 0x00000099U;
+  test.data[5] = 0x00000088U;
+  test.data[6] = 0x00000077U;
+  test.data[7] = 0x00000066U;
+
+  UInt256 result = uint256_rotate_right(test, 4);
+
+  ASSERT(0xC000000DU == result.data[0]);
+  ASSERT(0xB000000CU == result.data[1]);
+  ASSERT(0xA000000BU == result.data[2]);
+  ASSERT(0x9000000AU == result.data[3]);
+  ASSERT(0x80000009U == result.data[4]);
+  ASSERT(0x70000008U == result.data[5]);
+  ASSERT(0x60000007U == result.data[6]);
+  ASSERT(0xD0000006U == result.data[7]);
+}
+
+// rotating right between 32 and 256
+void test_rotate_right_between_32_and_256() {
+  UInt256 test = {0};
+  test.data[0] = 0x000000DDU;
+  test.data[1] = 0x000000CCU;
+  test.data[2] = 0x000000BBU;
+  test.data[3] = 0x000000AAU;
+  test.data[4] = 0x00000099U;
+  test.data[5] = 0x00000088U;
+  test.data[6] = 0x00000077U;
+  test.data[7] = 0x00000066U;
+
+  UInt256 result = uint256_rotate_right(test, 36); // 32 + 4
+
+  ASSERT(0xB000000CU == result.data[0]);
+  ASSERT(0xA000000BU == result.data[1]);
+  ASSERT(0x9000000AU == result.data[2]);
+  ASSERT(0x80000009U == result.data[3]);
+  ASSERT(0x70000008U == result.data[4]);
+  ASSERT(0x60000007U == result.data[5]);
+  ASSERT(0xD0000006U == result.data[6]);
+  ASSERT(0xC000000DU == result.data[7]);
+}
+

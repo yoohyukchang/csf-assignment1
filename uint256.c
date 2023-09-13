@@ -119,20 +119,19 @@ uint32_t uint256_get_bits(UInt256 val, unsigned index) {
 // Compute the sum of two UInt256 values.
 UInt256 uint256_add(UInt256 left, UInt256 right) {
   UInt256 result = {0};  // Initialize all elements to zero
-    uint32_t carry = 0;    // Start with no carry
+  uint32_t carry = 0;    // Start with no carry
 
-    for (int i = 0; i < 8; i++) {
-        uint32_t sumWithoutCarry = left.data[i] + right.data[i];
-uint32_t sum = sumWithoutCarry + carry;
-if (sumWithoutCarry < left.data[i] || sum < sumWithoutCarry) {
-    carry = 1;
-} else {
-    carry = 0;
-}
-        result.data[i] = sum;  // Store only the lower 32 bits
+  for (int i = 0; i < 8; i++) {
+    uint32_t sumWithoutCarry = left.data[i] + right.data[i];
+    uint32_t sum = sumWithoutCarry + carry;
+    if (sumWithoutCarry < left.data[i] || sum < sumWithoutCarry) {
+      carry = 1;
+    } else {
+      carry = 0;
     }
-    return result;
-
+    result.data[i] = sum;  // Store only the lower 32 bits
+  }
+  return result;
 }
 
  //int main(){
@@ -172,18 +171,16 @@ UInt256 uint256_sub(UInt256 left, UInt256 right) {
 // Return the two's-complement negation of the given UInt256 value.
 UInt256 uint256_negate(UInt256 val) {
   for (int i = 0; i < 8; i++) {
-        val.data[i] = ~val.data[i];
-    }
-
-    // Step 2: Add 1
-    uint64_t carry = 1;
-    for (int i = 0; i < 8 && carry; i++) {
-        uint64_t resultWithCarry = (uint64_t)val.data[i] + carry;
-        val.data[i] = (uint32_t)resultWithCarry;  // Take the least significant 32 bits
-        carry = resultWithCarry >> 32;            // Take the carry (if any)
-    }
-
-    return val;
+    val.data[i] = ~val.data[i];
+  }
+  // Add 1
+  uint64_t carry = 1;
+  for (int i = 0; i < 8 && carry; i++) {
+    uint64_t resultWithCarry = (uint64_t)val.data[i] + carry;
+    val.data[i] = (uint32_t)resultWithCarry;  // Take the least significant 32 bits
+    carry = resultWithCarry >> 32;            // Take the carry (if any)
+  }
+  return val;
 }
 
 // Return the result of rotating every bit in val nbits to
@@ -270,19 +267,19 @@ UInt256 uint256_rotate_right(UInt256 val, unsigned nbits) {
 // int main() {
 
 //   UInt256 test = {0};
-//   test.data[0] = 0xDD;
-//   test.data[1] = 0xCC;
-//   test.data[2] = 0xBB;
-//   test.data[3] = 0xAA;
-//   test.data[4] = 0x99;
-//   test.data[5] = 0x88;
-//   test.data[6] = 0x77;
-//   test.data[7] = 0x66;
+//   test.data[0] = 0x000000DDU;
+//   test.data[1] = 0x000000CCU;
+//   test.data[2] = 0x000000BBU;
+//   test.data[3] = 0x000000AAU;
+//   test.data[4] = 0x00000099U;
+//   test.data[5] = 0x00000088U;
+//   test.data[6] = 0x00000077U;
+//   test.data[7] = 0x00000066U;
 
-//   UInt256 new = uint256_rotate_right(test, 32);
+//   UInt256 result = uint256_rotate_right(test, 36);
 
 //   for (int i = 0; i < 8; i++) {
-//     printf("%x ", new.data[i]);
+//     printf("%x ", result.data[i]);
 //   }
   
 //   return 0;
